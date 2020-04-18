@@ -1,62 +1,3 @@
-"""
--------------------------------------
-denoising
--------------------------------------
-python  train.py \
-        --mode train \
-        --network unet \
-        --learning_type residual \
-        --task denoising \
-        --opts random 30.0
-
-python  train.py \
-        --mode train \
-        --network resnet \
-        --learning_type residual \
-        --task denoising \
-        --opts random 30.0
-
--------------------------------------
-inpainting
--------------------------------------
-python  train.py \
-        --mode train \
-        --network unet \
-        --learning_type residual \
-        --task inpainting \
-        --opts random 0.5
-
-python  train.py \
-        --mode train \
-        --network resnet \
-        --learning_type residual \
-        --task inpainting \
-        --opts random 0.5
-
--------------------------------------
-super_resolution
--------------------------------------
-python  train.py \
-        --mode train \
-        --network unet \
-        --learning_type residual \
-        --task super_resolution \
-        --opts bilinear 4.0
-
-python  train.py \
-        --mode train \
-        --network resnet \
-        --learning_type residual \
-        --task super_resolution \
-        --opts bilinear 4.0
-
-python  train.py \
-        --mode train \
-        --network srresnet \
-        --learning_type residual \
-        --task super_resolution \
-        --opts bilinear 4.0 0.0
-"""
 
 ## 라이브러리 추가하기
 import argparse
@@ -86,20 +27,20 @@ parser.add_argument("--train_continue", default="on", choices=["on", "off"], typ
 
 parser.add_argument("--lr", default=2e-4, type=float, dest="lr")
 parser.add_argument("--batch_size", default=128, type=int, dest="batch_size")
-parser.add_argument("--num_epoch", default=300, type=int, dest="num_epoch")
+parser.add_argument("--num_epoch", default=10, type=int, dest="num_epoch")
 
-parser.add_argument("--data_dir", default="../../datasets/img_align_celeba", type=str, dest="data_dir")
+parser.add_argument("--data_dir", default="./../datasets/img_align_celeba", type=str, dest="data_dir")
 parser.add_argument("--ckpt_dir", default="./checkpoint/DCGAN", type=str, dest="ckpt_dir")
 parser.add_argument("--log_dir", default="./log/DCGAN", type=str, dest="log_dir")
 parser.add_argument("--result_dir", default="./result/DCGAN", type=str, dest="result_dir")
 
-parser.add_argument("--task", default="GAN", choices=["inpainting", "denoising", "super_resolution"], type=str, dest="task")
+parser.add_argument("--task", default="GAN", choices=["inpainting", "denoising", "super_resolution", 'GAN'], type=str, dest="task")
 parser.add_argument('--opts', nargs='+', default=['bilinear', 4.0, 0], dest='opts')
 
 parser.add_argument("--ny", default=64, type=int, dest="ny")
 parser.add_argument("--nx", default=64, type=int, dest="nx")
 parser.add_argument("--nch", default=3, type=int, dest="nch")
-parser.add_argument("--nker", default=128, type=int, dest="nker")
+parser.add_argument("--nker", default=64, type=int, dest="nker")
 
 parser.add_argument("--network", default="DCGAN", choices=["unet", "hourglass", "resnet", "srresnet", "DCGAN"], type=str, dest="network")
 parser.add_argument("--learning_type", default="plain", choices=["plain", "residual"], type=str, dest="learning_type")
@@ -166,7 +107,7 @@ if not os.path.exists(result_dir):
 if mode == 'train':
     transform_train = transforms.Compose([Resize(shape=(ny, nx)), Normalization(mean=0.5, std=0.5)])
     dataset_train = Dataset(data_dir=data_dir, transform=transform_train, task=task, opts=opts)
-    loader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True, num_workers=8)
+    loader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True, num_workers=0)
 
     # 그밖에 부수적인 variables 설정하기
     num_data_train = len(dataset_train)
@@ -274,7 +215,7 @@ if mode == 'train':
 
               plt.imsave(os.path.join(result_dir_train, 'png', '%04d_output.png' % id), output[0], cmap=cmap)
 
-              # writer_train.add_image('output', output, id, dataformats='NHWC')
+              writer_train.add_image('output', output, id, dataformats='NHWC')
 
         writer_train.add_scalar('loss_G', np.mean(loss_G_train), epoch)
         writer_train.add_scalar('loss_D_real', np.mean(loss_D_real_train), epoch)
