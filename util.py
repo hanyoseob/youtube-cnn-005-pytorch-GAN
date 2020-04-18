@@ -34,7 +34,7 @@ def load(ckpt_dir, netG, netD, optimG, optimD):
     netG.load_state_dict(dict_model['netG'])
     netD.load_state_dict(dict_model['netD'])
     optimG.load_state_dict(dict_model['optimG'])
-    optimD.load_state_dict(dict_model['optimd'])
+    optimD.load_state_dict(dict_model['optimD'])
     epoch = int(ckpt_lst[-1].split('epoch')[1].split('.pth')[0])
 
     return netG, netD, optimG, optimD, epoch
