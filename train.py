@@ -27,7 +27,7 @@ parser.add_argument("--train_continue", default="on", choices=["on", "off"], typ
 
 parser.add_argument("--lr", default=2e-4, type=float, dest="lr")
 parser.add_argument("--batch_size", default=128, type=int, dest="batch_size")
-parser.add_argument("--num_epoch", default=10, type=int, dest="num_epoch")
+parser.add_argument("--num_epoch", default=5, type=int, dest="num_epoch")
 
 parser.add_argument("--data_dir", default="./../datasets/img_align_celeba", type=str, dest="data_dir")
 parser.add_argument("--ckpt_dir", default="./checkpoint/DCGAN", type=str, dest="ckpt_dir")
@@ -223,7 +223,7 @@ def main():
             writer_train.add_scalar('loss_D_real', np.mean(loss_D_real_train), epoch)
             writer_train.add_scalar('loss_D_fake', np.mean(loss_D_fake_train), epoch)
 
-            if epoch % 50 == 0:
+            if (epoch % 2 == 0) or epoch == num_epoch:
                 save(ckpt_dir=ckpt_dir, netG=netG, netD=netD, optimG=optimG, optimD=optimD, epoch=epoch)
 
         writer_train.close()
