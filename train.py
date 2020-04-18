@@ -45,209 +45,213 @@ parser.add_argument("--nker", default=64, type=int, dest="nker")
 parser.add_argument("--network", default="DCGAN", choices=["unet", "hourglass", "resnet", "srresnet", "DCGAN"], type=str, dest="network")
 parser.add_argument("--learning_type", default="plain", choices=["plain", "residual"], type=str, dest="learning_type")
 
-args = parser.parse_args()
 
-## 트레이닝 파라메터 설정하기
-mode = args.mode
-train_continue = args.train_continue
+def main():
+    args = parser.parse_args()
 
-lr = args.lr
-batch_size = args.batch_size
-num_epoch = args.num_epoch
+    ## 트레이닝 파라메터 설정하기
+    mode = args.mode
+    train_continue = args.train_continue
 
-data_dir = args.data_dir
-ckpt_dir = args.ckpt_dir
-log_dir = args.log_dir
-result_dir = args.result_dir
+    lr = args.lr
+    batch_size = args.batch_size
+    num_epoch = args.num_epoch
 
-task = args.task
-opts = [args.opts[0], np.asarray(args.opts[1:]).astype(np.float)]
+    data_dir = args.data_dir
+    ckpt_dir = args.ckpt_dir
+    log_dir = args.log_dir
+    result_dir = args.result_dir
 
-ny = args.ny
-nx = args.nx
-nch = args.nch
-nker = args.nker
+    task = args.task
+    opts = [args.opts[0], np.asarray(args.opts[1:]).astype(np.float)]
 
-network = args.network
-learning_type = args.learning_type
+    ny = args.ny
+    nx = args.nx
+    nch = args.nch
+    nker = args.nker
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    network = args.network
+    learning_type = args.learning_type
 
-print("mode: %s" % mode)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-print("learning rate: %.4e" % lr)
-print("batch size: %d" % batch_size)
-print("number of epoch: %d" % num_epoch)
+    print("mode: %s" % mode)
 
-print("task: %s" % task)
-print("opts: %s" % opts)
+    print("learning rate: %.4e" % lr)
+    print("batch size: %d" % batch_size)
+    print("number of epoch: %d" % num_epoch)
 
-print("network: %s" % network)
-print("learning type: %s" % learning_type)
+    print("task: %s" % task)
+    print("opts: %s" % opts)
 
-print("data dir: %s" % data_dir)
-print("ckpt dir: %s" % ckpt_dir)
-print("log dir: %s" % log_dir)
-print("result dir: %s" % result_dir)
+    print("network: %s" % network)
+    print("learning type: %s" % learning_type)
 
-print("device: %s" % device)
+    print("data dir: %s" % data_dir)
+    print("ckpt dir: %s" % ckpt_dir)
+    print("log dir: %s" % log_dir)
+    print("result dir: %s" % result_dir)
 
-## 디렉토리 생성하기
-result_dir_train = os.path.join(result_dir, 'train')
-result_dir_test = os.path.join(result_dir, 'test')
+    print("device: %s" % device)
 
-if not os.path.exists(result_dir):
-    os.makedirs(os.path.join(result_dir_train, 'png'))
-    # os.makedirs(os.path.join(result_dir_train, 'numpy'))
+    ## 디렉토리 생성하기
+    result_dir_train = os.path.join(result_dir, 'train')
+    result_dir_test = os.path.join(result_dir, 'test')
 
-    os.makedirs(os.path.join(result_dir_test, 'png'))
-    os.makedirs(os.path.join(result_dir_test, 'numpy'))
+    if not os.path.exists(result_dir):
+        os.makedirs(os.path.join(result_dir_train, 'png'))
+        # os.makedirs(os.path.join(result_dir_train, 'numpy'))
 
-## 네트워크 학습하기
-if mode == 'train':
-    transform_train = transforms.Compose([Resize(shape=(ny, nx)), Normalization(mean=0.5, std=0.5)])
-    dataset_train = Dataset(data_dir=data_dir, transform=transform_train, task=task, opts=opts)
-    loader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True, num_workers=0)
+        os.makedirs(os.path.join(result_dir_test, 'png'))
+        os.makedirs(os.path.join(result_dir_test, 'numpy'))
 
-    # 그밖에 부수적인 variables 설정하기
-    num_data_train = len(dataset_train)
-    num_batch_train = np.ceil(num_data_train / batch_size)
+    ## 네트워크 학습하기
+    if mode == 'train':
+        transform_train = transforms.Compose([Resize(shape=(ny, nx)), Normalization(mean=0.5, std=0.5)])
+        dataset_train = Dataset(data_dir=data_dir, transform=transform_train, task=task, opts=opts)
+        loader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True, num_workers=8)
 
-## 네트워크 생성하기
-if network == "unet":
-    net = UNet(in_channels=nch, out_channels=nch, nker=nker, learning_type=learning_type).to(device)
-elif network == "hourglass":
-    net = Hourglass(in_channels=nch, out_channels=nch, nker=nker, learning_type=learning_type).to(device)
-elif network == "resnet":
-    net = ResNet(in_channels=nch, out_channels=nch, nker=nker, learning_type=learning_type).to(device)
-elif network == "srresnet":
-    net = SRResNet(in_channels=nch, out_channels=nch, nker=nker, learning_type=learning_type).to(device)
-elif network == "DCGAN":
-    netG = DCGAN(in_channels=100, out_channels=nch, nker=nker).to(device)
-    netD = Discriminator(in_channels=nch, out_channels=1, nker=nker).to(device)
+        # 그밖에 부수적인 variables 설정하기
+        num_data_train = len(dataset_train)
+        num_batch_train = np.ceil(num_data_train / batch_size)
 
-    init_weights(netG, init_type='normal', init_gain=0.02)
-    init_weights(netD, init_type='normal', init_gain=0.02)
+    ## 네트워크 생성하기
+    if network == "unet":
+        net = UNet(in_channels=nch, out_channels=nch, nker=nker, learning_type=learning_type).to(device)
+    elif network == "hourglass":
+        net = Hourglass(in_channels=nch, out_channels=nch, nker=nker, learning_type=learning_type).to(device)
+    elif network == "resnet":
+        net = ResNet(in_channels=nch, out_channels=nch, nker=nker, learning_type=learning_type).to(device)
+    elif network == "srresnet":
+        net = SRResNet(in_channels=nch, out_channels=nch, nker=nker, learning_type=learning_type).to(device)
+    elif network == "DCGAN":
+        netG = DCGAN(in_channels=100, out_channels=nch, nker=nker).to(device)
+        netD = Discriminator(in_channels=nch, out_channels=1, nker=nker).to(device)
 
-## 손실함수 정의하기
-# fn_loss = nn.BCEWithLogitsLoss().to(device)
-# fn_loss = nn.MSELoss().to(device)
-fn_loss = nn.BCELoss().to(device)
+        # init_weights(netG, init_type='normal', init_gain=0.02)
+        # init_weights(netD, init_type='normal', init_gain=0.02)
 
-## Optimizer 설정하기
-optimG = torch.optim.Adam(netG.parameters(), lr=lr, betas=(0.5, 0.999))
-optimD = torch.optim.Adam(netD.parameters(), lr=lr, betas=(0.5, 0.999))
+    ## 손실함수 정의하기
+    # fn_loss = nn.MSELoss().to(device)
+    fn_loss = nn.BCELoss().to(device)
+    # fn_loss = nn.BCEWithLogitsLoss().to(device)
 
-## 그밖에 부수적인 functions 설정하기
-fn_tonumpy = lambda x: x.to('cpu').detach().numpy().transpose(0, 2, 3, 1)
-fn_denorm = lambda x, mean, std: (x * std) + mean
-fn_class = lambda x: 1.0 * (x > 0.5)
+    ## Optimizer 설정하기
+    optimG = torch.optim.Adam(netG.parameters(), lr=lr, betas=(0.5, 0.999))
+    optimD = torch.optim.Adam(netD.parameters(), lr=lr, betas=(0.5, 0.999))
 
-cmap = None if nch == 3 else "gray"
+    ## 그밖에 부수적인 functions 설정하기
+    fn_tonumpy = lambda x: x.to('cpu').detach().numpy().transpose(0, 2, 3, 1)
+    fn_denorm = lambda x, mean, std: (x * std) + mean
+    fn_class = lambda x: 1.0 * (x > 0.5)
 
-## Tensorboard 를 사용하기 위한 SummaryWriter 설정
-writer_train = SummaryWriter(log_dir=os.path.join(log_dir, 'train'))
+    cmap = None if nch == 3 else "gray"
 
-## 네트워크 학습시키기
-st_epoch = 0
+    ## Tensorboard 를 사용하기 위한 SummaryWriter 설정
+    writer_train = SummaryWriter(log_dir=os.path.join(log_dir, 'train'))
 
-# TRAIN MODE
-if mode == 'train':
-    if train_continue == "on":
+    ## 네트워크 학습시키기
+    st_epoch = 0
+
+    # TRAIN MODE
+    if mode == 'train':
+        if train_continue == "on":
+            netG, netD, optimG, optimD, st_epoch = load(ckpt_dir=ckpt_dir, netG=netG, netD=netD, optimG=optimG, optimD=optimD)
+
+        for epoch in range(st_epoch + 1, num_epoch + 1):
+            netG.train()
+            netD.train()
+
+            loss_G_train = []
+            loss_D_real_train = []
+            loss_D_fake_train = []
+
+            for batch, data in enumerate(loader_train, 1):
+                # forward pass
+                label = data['label'].to(device)
+                input = torch.randn(label.size(0), 100, 1, 1).to(device)
+
+                output = netG(input)
+
+                # backward netD
+                set_requires_grad(netD, True)
+                optimD.zero_grad()
+
+                pred_real = netD(label)
+                pred_fake = netD(output.detach())
+
+                loss_D_real = fn_loss(pred_real, torch.ones_like(pred_real))
+                loss_D_fake = fn_loss(pred_fake, torch.zeros_like(pred_fake))
+                loss_D = 0.5 * (loss_D_real + loss_D_fake)
+
+                loss_D.backward()
+                optimD.step()
+
+                # backward netD
+                set_requires_grad(netD, False)
+                optimG.zero_grad()
+
+                pred_fake = netD(output)
+
+                loss_G = fn_loss(pred_fake, torch.ones_like(pred_fake))
+
+                loss_G.backward()
+                optimG.step()
+
+                # 손실함수 계산
+                loss_G_train += [loss_G.item()]
+                loss_D_real_train += [loss_D_real.item()]
+                loss_D_fake_train += [loss_D_fake.item()]
+
+                print("TRAIN: EPOCH %04d / %04d | BATCH %04d / %04d | "
+                      "GEN: %.4f | DISC REAL: %.4f | DISC FAKE: %.4f" %
+                      (epoch, num_epoch, batch, num_batch_train,
+                       np.mean(loss_G_train), np.mean(loss_D_real_train), np.mean(loss_D_fake_train)))
+
+                if batch % 20 == 0:
+                  # Tensorboard 저장하기
+                  id = num_batch_train * (epoch - 1) + batch
+
+                  output = fn_tonumpy(fn_denorm(output, mean=0.5, std=0.5)).squeeze()
+                  output = np.clip(output, a_min=0, a_max=1)
+
+                  plt.imsave(os.path.join(result_dir_train, 'png', '%04d_output.png' % id), output[0], cmap=cmap)
+
+                  writer_train.add_image('output', output, id, dataformats='NHWC')
+
+            writer_train.add_scalar('loss_G', np.mean(loss_G_train), epoch)
+            writer_train.add_scalar('loss_D_real', np.mean(loss_D_real_train), epoch)
+            writer_train.add_scalar('loss_D_fake', np.mean(loss_D_fake_train), epoch)
+
+            if epoch % 50 == 0:
+                save(ckpt_dir=ckpt_dir, netG=netG, netD=netD, optimG=optimG, optimD=optimD, epoch=epoch)
+
+        writer_train.close()
+
+    # TEST MODE
+    else:
         netG, netD, optimG, optimD, st_epoch = load(ckpt_dir=ckpt_dir, netG=netG, netD=netD, optimG=optimG, optimD=optimD)
 
-    for epoch in range(st_epoch + 1, num_epoch + 1):
-        netG.train()
-        netD.train()
+        with torch.no_grad():
+            netG.eval()
 
-        loss_G_train = []
-        loss_D_real_train = []
-        loss_D_fake_train = []
-
-        for batch, data in enumerate(loader_train, 1):
             # forward pass
-            label = data['label'].to(device)
-            input = torch.randn(label.size(0), 100, 1, 1).to(device)
+            input = torch.randn(batch_size, 100, 1, 1).to(device)
 
             output = netG(input)
 
-            # backward netD
-            set_requires_grad(netD, True)
-            optimD.zero_grad()
+            print("TEST COMPLETE")
 
-            pred_real = netD(label)
-            pred_fake = netD(output.detach())
+            # Tensorboard 저장하기
+            output = fn_tonumpy(fn_denorm(output, mean=0.5, std=0.5)).squeeze()
 
-            loss_D_real = fn_loss(pred_real, torch.ones_like(pred_real))
-            loss_D_fake = fn_loss(pred_fake, torch.zeros_like(pred_fake))
-            loss_D = 0.5 * (loss_D_real + loss_D_fake)
+            for j in range(output.shape[0]):
+                id = j
+                output_ = output[j]
+                output_ = np.clip(output_, a_min=0, a_max=1)
 
-            loss_D.backward()
-            optimD.step()
-
-            # backward netD
-            set_requires_grad(netG, False)
-            optimG.zero_grad()
-
-            pred_fake = netD(output)
-
-            loss_G = fn_loss(pred_fake, torch.ones_like(pred_fake))
-
-            loss_G.backward()
-            optimG.step()
-
-            # 손실함수 계산
-            loss_G_train += [loss_G.item()]
-            loss_D_real_train += [loss_D_real.item()]
-            loss_D_fake_train += [loss_D_fake.item()]
-
-            print("TRAIN: EPOCH %04d / %04d | BATCH %04d / %04d | "
-                  "GEN: %.4f | DISC REAL: %.4f | DISC FAKE: %.4f" %
-                  (epoch, num_epoch, batch, num_batch_train,
-                   np.mean(loss_G_train), np.mean(loss_D_real_train), np.mean(loss_D_fake_train)))
-
-            if batch % 20 == 0:
-              # Tensorboard 저장하기
-              id = num_batch_train * (epoch - 1) + batch
-
-              output = fn_tonumpy(fn_denorm(output, mean=0.5, std=0.5)).squeeze()
-              output = np.clip(output, a_min=0, a_max=1)
-
-              plt.imsave(os.path.join(result_dir_train, 'png', '%04d_output.png' % id), output[0], cmap=cmap)
-
-              writer_train.add_image('output', output, id, dataformats='NHWC')
-
-        writer_train.add_scalar('loss_G', np.mean(loss_G_train), epoch)
-        writer_train.add_scalar('loss_D_real', np.mean(loss_D_real_train), epoch)
-        writer_train.add_scalar('loss_D_fake', np.mean(loss_D_fake_train), epoch)
-
-        if epoch % 50 == 0:
-            save(ckpt_dir=ckpt_dir, netG=netG, netD=netD, optimG=optimG, optimD=optimD, epoch=epoch)
-
-    writer_train.close()
-
-# TEST MODE
-else:
-    netG, netD, optimG, optimD, st_epoch = load(ckpt_dir=ckpt_dir, netG=netG, netD=netD, optimG=optimG, optimD=optimD)
-
-    with torch.no_grad():
-        netG.eval()
-
-        # forward pass
-        input = torch.randn(batch_size, 100, 1, 1).to(device)
-
-        output = netG(input)
-
-        print("TEST COMPLETE")
-
-        # Tensorboard 저장하기
-        output = fn_tonumpy(fn_denorm(output, mean=0.5, std=0.5)).squeeze()
-
-        for j in range(output.shape[0]):
-            id = j
-            output_ = output[j]
-            output_ = np.clip(output_, a_min=0, a_max=1)
-
-            plt.imsave(os.path.join(result_dir_test, 'png', '%04d_output.png' % id), output_, cmap=cmap)
+                plt.imsave(os.path.join(result_dir_test, 'png', '%04d_output.png' % id), output_, cmap=cmap)
 
 
+if __name__ == "__main__":
+    main()
