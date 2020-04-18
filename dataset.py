@@ -19,11 +19,11 @@ class Dataset(torch.utils.data.Dataset):
         # Updated at Apr 5 2020
         self.to_tensor = ToTensor()
 
-        # lst_data = os.listdir(self.data_dir)
-        # lst_data = [f for f in lst_data if f.endswith('jpg') | f.endswith('jpeg') | f.endswith('png')]
-        # lst_data.sort()
+        lst_data = os.listdir(self.data_dir)
+        lst_data = [f for f in lst_data if f.endswith('jpg') | f.endswith('jpeg') | f.endswith('png')]
+        lst_data.sort()
 
-        lst_data = np.load('/content/drive/My Drive/YouTube/youtube-cnn-005-pytorch-GAN/lst_data.npy')
+        # lst_data = np.load('/content/drive/My Drive/YouTube/youtube-cnn-005-pytorch-GAN/lst_data.npy')
 
         self.lst_data = lst_data
 
