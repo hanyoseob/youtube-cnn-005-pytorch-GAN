@@ -166,7 +166,7 @@ if not os.path.exists(result_dir):
 if mode == 'train':
     transform_train = transforms.Compose([Resize(shape=(ny, nx)), Normalization(mean=0.5, std=0.5)])
     dataset_train = Dataset(data_dir=data_dir, transform=transform_train, task=task, opts=opts)
-    loader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True, num_workers=0)
+    loader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True, num_workers=8)
 
     # 그밖에 부수적인 variables 설정하기
     num_data_train = len(dataset_train)
