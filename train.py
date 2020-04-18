@@ -40,7 +40,7 @@ parser.add_argument('--opts', nargs='+', default=['bilinear', 4.0, 0], dest='opt
 parser.add_argument("--ny", default=64, type=int, dest="ny")
 parser.add_argument("--nx", default=64, type=int, dest="nx")
 parser.add_argument("--nch", default=3, type=int, dest="nch")
-parser.add_argument("--nker", default=64, type=int, dest="nker")
+parser.add_argument("--nker", default=128, type=int, dest="nker")
 
 parser.add_argument("--network", default="DCGAN", choices=["unet", "hourglass", "resnet", "srresnet", "DCGAN"], type=str, dest="network")
 parser.add_argument("--learning_type", default="plain", choices=["plain", "residual"], type=str, dest="learning_type")
