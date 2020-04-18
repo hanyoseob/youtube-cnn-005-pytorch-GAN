@@ -34,7 +34,6 @@ parser.add_argument("--learning_type", default="plain", choices=["plain", "resid
 args = parser.parse_args()
 
 if __name__ == "__main__":
-
     if args.mode == "train":
         train(args)
     elif args.mode == "test":
