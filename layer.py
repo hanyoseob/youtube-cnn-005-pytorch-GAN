@@ -28,6 +28,9 @@ class CBR2d(nn.Module):
         return self.cbr(x)
 
 
+"""
+2020.04.19. Edited by YS
+"""
 class DECBR2d(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True, norm="bnorm", relu=0.0):
         super().__init__()

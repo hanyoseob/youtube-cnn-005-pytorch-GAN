@@ -291,6 +291,9 @@ def patch2image(src, nimg, npatch, nmargin, datatype="tensor", type="count"):
     return dst
 
 
+"""
+2020.04.19. Edited by YS
+"""
 def init_weights(net, init_type='normal', init_gain=0.02):
     """Initialize network weights.
 
@@ -325,7 +328,9 @@ def init_weights(net, init_type='normal', init_gain=0.02):
     net.apply(init_func)  # apply the initialization function <init_func>
 
 
-
+"""
+2020.04.19. Edited by YS
+"""
 def set_requires_grad(nets, requires_grad=False):
     """Set requies_grad=Fasle for all the networks to avoid unnecessary computations
     Parameters:

@@ -14,6 +14,10 @@ import matplotlib.pyplot as plt
 
 from torchvision import transforms
 
+"""
+2020.04.19. Edited by YS
+"""
+
 def train(args):
     ## 트레이닝 파라메터 설정하기
     mode = args.mode
@@ -61,22 +65,30 @@ def train(args):
     print("device: %s" % device)
 
     ## 디렉토리 생성하기
+    """
+    2020.04.19. Edited by YS
+    """
     result_dir_train = os.path.join(result_dir, 'train')
 
     if not os.path.exists(result_dir):
         os.makedirs(os.path.join(result_dir_train, 'png'))
 
     ## 네트워크 학습하기
-    if mode == 'train':
-        transform_train = transforms.Compose([Resize(shape=(ny, nx)), Normalization(mean=0.5, std=0.5)])
-        dataset_train = Dataset(data_dir=data_dir, transform=transform_train, task=task, opts=opts)
-        loader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True, num_workers=8)
+    """
+    2020.04.19. Edited by YS
+    """
+    transform_train = transforms.Compose([Resize(shape=(ny, nx)), Normalization(mean=0.5, std=0.5)])
+    dataset_train = Dataset(data_dir=data_dir, transform=transform_train, task=task, opts=opts)
+    loader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True, num_workers=8)
 
-        # 그밖에 부수적인 variables 설정하기
-        num_data_train = len(dataset_train)
-        num_batch_train = np.ceil(num_data_train / batch_size)
+    # 그밖에 부수적인 variables 설정하기
+    num_data_train = len(dataset_train)
+    num_batch_train = np.ceil(num_data_train / batch_size)
 
     ## 네트워크 생성하기
+    """
+    2020.04.19. Edited by YS
+    """
     if network == "unet":
         net = UNet(in_channels=nch, out_channels=nch, nker=nker, learning_type=learning_type).to(device)
     elif network == "hourglass":
@@ -89,14 +101,23 @@ def train(args):
         netG = DCGAN(in_channels=100, out_channels=nch, nker=nker).to(device)
         netD = Discriminator(in_channels=nch, out_channels=1, nker=nker).to(device)
 
+        """
+        2020.04.19. Edited by YS
+        """
         init_weights(netG, init_type='normal', init_gain=0.02)
         init_weights(netD, init_type='normal', init_gain=0.02)
 
     ## 손실함수 정의하기
+    """
+    2020.04.19. Edited by YS
+    """
     fn_loss = nn.BCELoss().to(device)
     # fn_loss = nn.BCEWithLogitsLoss().to(device)
 
     ## Optimizer 설정하기
+    """
+    2020.04.19. Edited by YS
+    """
     optimG = torch.optim.Adam(netG.parameters(), lr=lr, betas=(0.5, 0.999))
     optimD = torch.optim.Adam(netD.parameters(), lr=lr, betas=(0.5, 0.999))
 
@@ -111,6 +132,9 @@ def train(args):
     writer_train = SummaryWriter(log_dir=os.path.join(log_dir, 'train'))
 
     ## 네트워크 학습시키기
+    """
+    2020.04.19. Edited by YS
+    """
     st_epoch = 0
 
     # TRAIN MODE
@@ -237,17 +261,19 @@ def test(args):
     print("device: %s" % device)
 
     ## 디렉토리 생성하기
-    result_dir_train = os.path.join(result_dir, 'train')
+    """
+    2020.04.19. Edited by YS
+    """
     result_dir_test = os.path.join(result_dir, 'test')
 
     if not os.path.exists(result_dir):
-        os.makedirs(os.path.join(result_dir_train, 'png'))
-        # os.makedirs(os.path.join(result_dir_train, 'numpy'))
-
         os.makedirs(os.path.join(result_dir_test, 'png'))
         os.makedirs(os.path.join(result_dir_test, 'numpy'))
 
     ## 네트워크 생성하기
+    """
+    2020.04.19. Edited by YS
+    """
     if network == "unet":
         net = UNet(in_channels=nch, out_channels=nch, nker=nker, learning_type=learning_type).to(device)
     elif network == "hourglass":
@@ -283,6 +309,9 @@ def test(args):
     writer_train = SummaryWriter(log_dir=os.path.join(log_dir, 'train'))
 
     ## 네트워크 학습시키기
+    """
+    2020.04.19. Edited by YS
+    """
     st_epoch = 0
 
     netG, netD, optimG, optimD, st_epoch = load(ckpt_dir=ckpt_dir, netG=netG, netD=netD, optimG=optimG, optimD=optimD)

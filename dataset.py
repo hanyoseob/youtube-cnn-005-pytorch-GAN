@@ -34,6 +34,9 @@ class Dataset(torch.utils.data.Dataset):
         img = plt.imread(os.path.join(self.data_dir, self.lst_data[index]))
         sz = img.shape
 
+        """
+        2020.04.19. Edited by YS
+        """
         # if sz[1] > sz[0]:
         #     img = img.transpose((1, 0, 2))
 
@@ -121,6 +124,9 @@ class RandomCrop(object):
     return data
 
 
+"""
+2020.04.19. Edited by YS
+"""
 class Resize(object):
   def __init__(self, shape):
       self.shape = shape
