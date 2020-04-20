@@ -6,84 +6,73 @@ import torch.nn as nn
 
 from layer import *
 
+## 네트워크 구축하기
+# DCGAN
+# https://arxiv.org/pdf/1511.06434.pdf
 
-# Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks
-# https://arxiv.org/abs/1511.06434
-"""
-2020.04.19. Edited by YS
-"""
 class DCGAN(nn.Module):
-    def __init__(self, in_channels, out_channels, nker=128, norm="bnorm"):
+    def __init__(self, in_channels, out_channels, nker=64, norm="bnorm"):
         super(DCGAN, self).__init__()
 
-        # dec5 : 1 x 1 x 100    -> 4 x 4 x 1024
-        # des4 : 4 x 4 x 1024   -> 8 x 8 x 512
-        # des3 : 8 x 8 x 512    -> 16 x 16 x 256
-        # des2 : 16 x 16 x 256  -> 32 x 32 x 128
-        # des1 : 32 x 32 x 128  -> 64 x 64 x 3
+        self.dec1 = DECBR2d(1 * in_channels, 8 * nker, kernel_size=4, stride=1,
+                            padding=0, norm=norm, relu=0.0, bias=False)
 
-        if norm is None:
-            bias = True
-        else:
-            bias = False
+        self.dec2 = DECBR2d(8 * nker, 4 * nker, kernel_size=4, stride=2,
+                            padding=1, norm=norm, relu=0.0, bias=False)
 
-        self.dec5 = DECBR2d(1 * in_channels,    8 * nker,       kernel_size=4, stride=1, padding=0, norm=norm, relu=0.0, bias=bias)
-        self.dec4 = DECBR2d(8 * nker,           4 * nker,       kernel_size=4, stride=2, padding=1, norm=norm, relu=0.0, bias=bias)
-        self.dec3 = DECBR2d(4 * nker,           2 * nker,       kernel_size=4, stride=2, padding=1, norm=norm, relu=0.0, bias=bias)
-        self.dec2 = DECBR2d(2 * nker,           1 * nker,       kernel_size=4, stride=2, padding=1, norm=norm, relu=0.0, bias=bias)
-        self.dec1 = DECBR2d(1 * nker,           out_channels,   kernel_size=4, stride=2, padding=1, norm=None, relu=None, bias=False)
+        self.dec3 = DECBR2d(4 * nker, 2 * nker, kernel_size=4, stride=2,
+                            padding=1, norm=norm, relu=0.0, bias=False)
+
+        self.dec4 = DECBR2d(2 * nker, 1 * nker, kernel_size=4, stride=2,
+                            padding=1, norm=norm, relu=0.0, bias=False)
+
+        self.dec5 = DECBR2d(1 * nker, out_channels, kernel_size=4, stride=2,
+                            padding=1, norm=None, relu=None, bias=False)
 
     def forward(self, x):
 
-        x = self.dec5(x)
-        x = self.dec4(x)
-        x = self.dec3(x)
-        x = self.dec2(x)
         x = self.dec1(x)
+        x = self.dec2(x)
+        x = self.dec3(x)
+        x = self.dec4(x)
+        x = self.dec5(x)
 
         x = torch.tanh(x)
 
         return x
 
-
-"""
-2020.04.19. Edited by YS
-"""
 class Discriminator(nn.Module):
-    def __init__(self, in_channels, out_channels, nker=128, norm="bnorm"):
+    def __init__(self, in_channels, out_channels, nker=64, norm="bnorm"):
         super(Discriminator, self).__init__()
 
-        # dsc1 : 64 x 64 x 3    -> 32 x 32 x 128
-        # dsc2 : 32 x 32 x 128  -> 16 x 16 x 256
-        # dsc3 : 16 x 16 x 256  -> 8 x 8 x 512
-        # dsc4 : 8 x 8 x 512    -> 4 x 4 x 1024
-        # dsc5 : 4 x 4 x 1024   -> 1 x 1 x 1
+        self.enc1 = CBR2d(1 * in_channels, 1 * nker, kernel_size=4, stride=2,
+                          padding=1, norm=norm, relu=0.2, bias=False)
 
-        if norm is None:
-            bias = True
-        else:
-            bias = False
+        self.enc2 = CBR2d(1 * nker, 2 * nker, kernel_size=4, stride=2,
+                          padding=1, norm=norm, relu=0.2, bias=False)
 
-        self.dsc1 = CBR2d(1 * in_channels,  1 * nker,       kernel_size=4, stride=2, padding=1, norm=norm, relu=0.2, bias=bias)
-        self.dsc2 = CBR2d(1 * nker,         2 * nker,       kernel_size=4, stride=2, padding=1, norm=norm, relu=0.2, bias=bias)
-        self.dsc3 = CBR2d(2 * nker,         4 * nker,       kernel_size=4, stride=2, padding=1, norm=norm, relu=0.2, bias=bias)
-        self.dsc4 = CBR2d(4 * nker,         8 * nker,       kernel_size=4, stride=2, padding=1, norm=norm, relu=0.2, bias=bias)
-        self.dsc5 = CBR2d(8 * nker,         out_channels,   kernel_size=4, stride=1, padding=1, norm=None, relu=None, bias=False)
+        self.enc3 = CBR2d(2 * nker, 4 * nker, kernel_size=4, stride=2,
+                          padding=1, norm=norm, relu=0.2, bias=False)
+
+        self.enc4 = CBR2d(4 * nker, 8 * nker, kernel_size=4, stride=2,
+                          padding=1, norm=norm, relu=0.2, bias=False)
+
+        self.enc5 = CBR2d(8 * nker, out_channels, kernel_size=4, stride=2,
+                          padding=1, norm=None, relu=None, bias=False)
 
     def forward(self, x):
 
-        x = self.dsc1(x)
-        x = self.dsc2(x)
-        x = self.dsc3(x)
-        x = self.dsc4(x)
-        x = self.dsc5(x)
+        x = self.enc1(x)
+        x = self.enc2(x)
+        x = self.enc3(x)
+        x = self.enc4(x)
+        x = self.enc5(x)
 
         x = torch.sigmoid(x)
 
         return x
 
 
-## 네트워크 구축하기
 # U-Net: Convolutional Networks for Biomedical Image Segmentation
 # https://arxiv.org/abs/1505.04597
 class UNet(nn.Module):
