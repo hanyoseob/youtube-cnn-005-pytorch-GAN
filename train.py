@@ -69,9 +69,6 @@ def train(args):
 
     ## 네트워크 학습하기
     if mode == 'train':
-        # transform_train = transforms.Compose([RandomCrop(shape=(ny, nx)), Normalization(mean=0.5, std=0.5), RandomFlip()])
-        # transform_val = transforms.Compose([RandomCrop(shape=(ny, nx)), Normalization(mean=0.5, std=0.5)])
-
         transform_train = transforms.Compose([Resize(shape=(ny, nx, nch)), Normalization(mean=0.5, std=0.5)])
 
         dataset_train = Dataset(data_dir=data_dir, transform=transform_train, task=task, opts=opts)
@@ -244,8 +241,6 @@ def test(args):
 
     ## 네트워크 학습하기
     if mode == "test":
-        # transform_test = transforms.Compose([Normalization(mean=0.5, std=0.5)])
-
         transform_test = transforms.Compose([Resize(shape=(ny, nx, nch)), Normalization(mean=0.5, std=0.5)])
 
         dataset_test = Dataset(data_dir=data_dir, transform=transform_test, task=task, opts=opts)
