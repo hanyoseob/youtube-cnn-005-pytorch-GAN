@@ -8,7 +8,7 @@ from train import *
 parser = argparse.ArgumentParser(description="Regression Tasks such as inpainting, denoising, and super_resolution",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-parser.add_argument("--mode", default="test", choices=["train", "test"], type=str, dest="mode")
+parser.add_argument("--mode", default="train", choices=["train", "test"], type=str, dest="mode")
 parser.add_argument("--train_continue", default="on", choices=["on", "off"], type=str, dest="train_continue")
 
 parser.add_argument("--lr", default=2e-4, type=float, dest="lr")
