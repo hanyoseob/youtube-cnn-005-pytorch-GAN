@@ -2,4 +2,5 @@
 /checkpoint/
 /log/
 /result/
+/__pycache__/
 /.idea/
